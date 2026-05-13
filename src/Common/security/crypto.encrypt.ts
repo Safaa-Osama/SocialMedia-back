@@ -1,0 +1,14 @@
+import CryptoJS from "crypto-js";
+import { ENCRYPTION_KEY } from "../../config/config.service";
+
+
+
+export function encryptValue({ value, key = ENCRYPTION_KEY }: { value: string, key?: string }) {
+    return CryptoJS.AES.encrypt(value, key!).toString()
+}
+
+export function decryptValue({ cipherText, key = ENCRYPTION_KEY }: { cipherText: string, key?: string }) {
+    const bytes = CryptoJS.AES.decrypt(cipherText, key!)
+    const text = bytes.toString(CryptoJS.enc.Utf8)
+    return text
+}
