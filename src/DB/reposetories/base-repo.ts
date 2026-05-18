@@ -61,8 +61,7 @@ abstract class BaseRepo<TDocument> {
         return this.model.findOneAndDelete(filter, options)
     }
 
-    async paginate({ page, limit, sort, populate, search, filter }: {
-        filter?: QueryFilter<TDocument>
+    async paginate({ page, limit, sort, populate, search }: {
         page?: number,
         limit?: number,
         sort?: any,
@@ -78,9 +77,15 @@ abstract class BaseRepo<TDocument> {
         const skip = (page - 1) * limit
 
         const [data, totalDoc] = await Promise.all([
-            await this.model.find({ ...(search ?? {}) }).limit(limit).skip(skip).sort(sort).populate(populate).exec(),
-            await this.model.countDocuments({ ...(search ?? {}) })
-        ])
+            this.model.find({ ...(search ?? {}) })
+                .limit(limit)
+                .skip(skip)
+                .sort(sort)
+                .populate(populate)
+                .exec(),
+
+            this.model.countDocuments({ ...(search ?? {}) })
+        ]);
         const totalPages = Math.ceil(totalDoc / limit)
 
         return {

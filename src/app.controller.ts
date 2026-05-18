@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import express from "express";
 import type { NextFunction, Request, Response } from "express"
 import cors from "cors";
@@ -13,6 +14,7 @@ import { dbConnection } from "./DB/mongoDB/db.connect";
 import { successResponse } from "./Common/utilis/response";
 import redisService from "./Common/services/redis.service";
 import notificationService from "./Common/services/notification.service";
+import graphql, { GraphQLObjectType, GraphQLSchema, GraphQLString } from "graphql"
 
 
 const app: express.Application = express()
@@ -39,6 +41,28 @@ export const bootstrap = async () => {
     app.get("/", (req: Request, res: Response, next: NextFunction) => {
         successResponse({ res, message: "Welcome to my Social Media app ...." })
     })
+
+
+    const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+            name: 'RootQueryType',
+            fields: {
+                hello: {
+                    type: GraphQLString,
+                    resolve() {
+                        return 'hello world';
+                    },
+                },
+                hi: {
+                    type: GraphQLString,
+                    resolve() {
+                        return "say hi"
+                    }
+                }
+            },
+        }),
+    });
+
 
 
     app.post("/send-notification", async (req: Request, res: Response, next: NextFunction) => {

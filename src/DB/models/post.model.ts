@@ -1,5 +1,5 @@
 import mongoose, { Schema, Types } from "mongoose";
-import { allowCommentEnum, avaliabilityEnum } from "../../Common/enum/postEnum";
+import { allowCommentEnum, availabilityEnum } from "../../Common/enum/postEnum";
 
 export interface IPost {
     content?: string;
@@ -25,7 +25,7 @@ const postSchema = new Schema<IPost>({
 
     createdBy: { type: Schema.Types.ObjectId, required: true, ref: "user" },
 
-    availability: { type: String, enum: avaliabilityEnum, default: avaliabilityEnum.public },
+    availability: { type: String, enum: availabilityEnum, default: availabilityEnum.public },
     allowComment: { type: String, enum: allowCommentEnum, default: allowCommentEnum.allowed },
 
     tags: [{ type: Schema.Types.ObjectId, ref: "user" }],
@@ -37,6 +37,14 @@ const postSchema = new Schema<IPost>({
     toJSON: { virtuals: true },
     toObject: { virtuals: true }
 });
+
+
+
+postSchema.virtual("comments", {
+    ref: "comment",
+    foreignField: "postId",
+    localField: "_id"
+})
 
 export const postModel =
     mongoose.models.post || mongoose.model<IPost>("post", postSchema);
