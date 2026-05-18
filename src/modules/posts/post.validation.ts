@@ -38,8 +38,38 @@ export const createPostSchema = {
 
 
 export const likePostSchema = {
-
     params: z.strictObject({
         postId: generalFields.id
     })
 }
+
+
+export const updatePostSchema = {
+    body: z.strictObject({
+        content: z.string().min(3).max(1000).optional(),
+        attachments: z.array(generalFields.file).optional(),
+        removeFiles: z.array(z.string()).optional(),
+
+        allowComment: z.enum(allowCommentEnum).default(allowCommentEnum.allowed).optional(),
+        availability: z.enum(availabilityEnum).default(availabilityEnum.public).optional(),
+
+
+        tags: z.array(generalFields.id).optional(),
+        removeTags: z.array(generalFields.id).optional()
+
+    }).superRefine((args, ctx) => {
+        if (args.tags?.length) {
+            const uniqueTags = [...new Set(args.tags)]
+            if (args.tags.length != uniqueTags.length) {
+                ctx.addIssue({
+                    code: "custom",
+                    path: ["tags"],
+                    message: "Duplicated Id"
+                })
+            }
+        }
+    }),
+
+    params: likePostSchema.params
+}
+

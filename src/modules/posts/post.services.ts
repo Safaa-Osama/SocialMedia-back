@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { successResponse } from "../../Common/utilis/response";
 import PostRepo from "../../DB/reposetories/post-repo";
-import { CreatePostDto, LikePostDto } from "./post.dto";
+import { CreatePostDto, LikePostDto, UpdatePostDto } from "./post.dto";
 import RedisService from '../../Common/services/redis.service';
 import s3Service from "../../Common/services/s3.service";
 import notificationService from "../../Common/services/notification.service";
@@ -12,6 +12,7 @@ import { HydratedDocument, QueryFilter, Types } from "mongoose";
 import { StoreEnum } from "../../Common/enum/multerEnum";
 import { IPost } from "../../DB/models/post.model";
 import { allowCommentEnum, availabilityEnum } from "../../Common/enum/postEnum";
+import { postAvailability } from "../../Common/utilis/availability";
 
 
 
@@ -78,25 +79,20 @@ class PostService {
     getAllPosts = async (req: Request, res: Response, next: NextFunction) => {
         const search = req.query.search as string;
 
-        const filter = {
-            $and: [{
-                $or: [
-                    { availability: availabilityEnum.public },
-                    { availability: availabilityEnum.onlyMe, createdBy: req?.user?._id },
-                    {
-                        availability: availabilityEnum.friends,
-                        createdBy: { $in: [...(req.user?.friends || []), req.user?._id] }
-                    },
-                    { tags: { $in: [req?.user?._id] } }
-                ]
-            } ]
-        };         
+        search ? {
+            $or: [
+                { content: { $regex: search, $options: "i" } }
+            ]
+        }
+            : {};
 
         const posts = await this._postRepo.paginate({
-            filter,
-            search: { $regex: search, $options: "i" },
-            page: Number(req.query.page) || 1,
-            limit: Number(req.query.limit) || 10
+            search: {
+                ...(await postAvailability(req)),
+                ... { $or: [{ content: { $regex: search, $options: "i" } }] },
+            },
+            page: Number(req.query.page),
+            limit: Number(req.query.limit)
         });
 
         successResponse({ res, data: posts });
@@ -107,6 +103,26 @@ class PostService {
     likeDislikePosts = async (req: Request, res: Response, next: NextFunction) => {
         const { postId } = req.params
 
+        const posts = await this._postRepo.findOneAndUpdate({
+            filter: { id: postId },
+            update: {
+                $addToSet: { likes: req.user?._id }
+            }
+        })
+
+
+        successResponse({ res })
+    }
+
+    updatePost = async (req: Request, res: Response, next: NextFunction) => {
+        const { content, attachments, availability, removeFiles, removeTags }: UpdatePostDto = req.params
+        const { postId } = req.params
+
+        const posts = await this._postRepo.findOneAndUpdate({
+            filter: { id: postId },
+            update: {}
+        }
+        )
 
 
         successResponse({ res })
