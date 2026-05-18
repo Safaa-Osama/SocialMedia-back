@@ -14,6 +14,7 @@ import { CreateCommentDto } from "./comment.dto";
 import { HydratedDocument, Types } from "mongoose";
 import commentRepo from "../../DB/reposetories/comment-repo";
 import { IComment } from "../../DB/models/comment.model";
+import { allowCommentEnum } from '../../Common/enum/postEnum';
 
 
 
@@ -28,10 +29,18 @@ class CommentService {
 
     createComment = async (req: Request, res: Response, next: NextFunction) => {
         const { content, attachments, tags }: CreateCommentDto = req.body
-        const { postId,commentId } = req.params
+        const { postId, commentId } = req.params
 
-        let doc : HydratedDocument<IComment> | IPost | null = null
-
+        const post = await this._postRepo.findOne({
+            filter: {
+                _id: postId,
+                ...postAvailability(req),
+                allowComment: allowCommentEnum.allowed
+            }
+        })
+        if (!post) {
+            throw new AppError("post not exist")
+        }
 
         if (tags?.length) {
             const taggedUser = await this._userRepo.find({
@@ -60,12 +69,14 @@ class CommentService {
         if (req.files) {
             urls = await this._s3service.uploadFiles({
                 files: req.files as Express.Multer.File[],
-                path: `users/${req?.user?._id}/comments/${folderId}`,
+                path: `users/${req?.user?._id}/posts/${post.folderId}/comments/${folderId}`,
                 store_type: StoreEnum.memory
             })
         }
 
         const comment = await this._commentRepo.create({
+            folderId,
+            postId: post._id,
             content,
             tags: mentions,
             attachments: urls,
@@ -80,7 +91,23 @@ class CommentService {
         successResponse({ res, message: "comment created", data: comment })
     }
 
+    getPosts = async (req: Request, res: Response, next: NextFunction){
+        const posts = await this._postRepo.find({
+            filter: { ...postAvailability(req) }
+        })
 
+        let doc = []
+        for (const post of posts) {
+            const comments = await this._commentRepo.find({
+                filter: { postId: post._id }
+            })
+            doc.push({ ...post.toObject(), comments })
+        }
+
+        successResponse({ res, data: doc })
+    }
+
+    //another way --- virtualKey
     getPostComment = async (req: Request, res: Response, next: NextFunction) => {
 
         const posts = await this._postRepo.find({
@@ -88,6 +115,7 @@ class CommentService {
             options: { populate: [{ path: "comments" }] }
         })
 
+        doc.push
         successResponse({ res, data: posts });
     };
 }

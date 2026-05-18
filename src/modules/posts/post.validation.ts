@@ -53,7 +53,6 @@ export const updatePostSchema = {
         allowComment: z.enum(allowCommentEnum).default(allowCommentEnum.allowed).optional(),
         availability: z.enum(availabilityEnum).default(availabilityEnum.public).optional(),
 
-
         tags: z.array(generalFields.id).optional(),
         removeTags: z.array(generalFields.id).optional()
 
@@ -67,7 +66,7 @@ export const updatePostSchema = {
                     message: "Duplicated Id"
                 })
             }
-        }
+         }
     }),
 
     params: likePostSchema.params

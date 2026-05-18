@@ -1,4 +1,4 @@
-import { OnModel } from './../../Common/enum/commentEnum';
+import { OnModelEnum } from './../../Common/enum/commentEnum';
 import mongoose, { Schema, Types } from "mongoose";
 
 export interface IComment {
@@ -7,11 +7,13 @@ export interface IComment {
 
     createdBy: Types.ObjectId;
     refId: Types.ObjectId;
-    onModel: string;
+    OnModel: string;
     tags?: Types.ObjectId[];
+    folderId:string;
 }
 
 const commentSchema = new Schema<IComment>({
+    folderId:String,
     content: {
         type: String,
         minLength: 3,
@@ -25,7 +27,7 @@ const commentSchema = new Schema<IComment>({
     createdBy: { type: Schema.Types.ObjectId, required: true, ref: "user" },
     refId: { type: Schema.Types.ObjectId, required: true, refPath: "onModel" },
 
-    onModel: { type: String, enum: OnModel, required: true }
+    OnModel: { type: String, enum: OnModelEnum,default:OnModelEnum.post, required: true }
 }, {
     timestamps: true,
     strictQuery: true,
