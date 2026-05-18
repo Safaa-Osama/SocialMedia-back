@@ -11,9 +11,11 @@ export interface IPost {
 
     tags?: Types.ObjectId[];
     likes?: Types.ObjectId[];
+    folderId: string
 }
 
 const postSchema = new Schema<IPost>({
+    folderId: String,
     content: {
         type: String,
         minLength: 3,

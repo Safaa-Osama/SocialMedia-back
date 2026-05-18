@@ -6,9 +6,7 @@ import { validation } from "../../Common/middleware/validation";
 import * as CV from "./comment.validation"
 import { authontication } from "../../Common/middleware/authontication";
 
-
-
-const commentRouter = Router({mergeParams:true})
+const commentRouter = Router({ mergeParams: true })
 
 commentRouter.get("/", (req, res) => {
     successResponse({ res, message: "Comment Page" })

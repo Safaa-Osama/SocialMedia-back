@@ -11,7 +11,7 @@ import commentRouter from "../comments/comment.controller";
 
 const postRouter = Router()
 
-postRouter.get("/:postId/comments", commentRouter)
+postRouter.use("/:postId/comments", commentRouter)
 
 postRouter.get("/", (req, res) => {
     successResponse({ res, message: "Post Page" })
@@ -21,8 +21,8 @@ postRouter.get("/allPosts", PS.getAllPosts);
 postRouter.post("/create", multer_cloud().array("attachments", 3), validation(PV.createPostSchema),
     authontication, PS.createPost);
 
-postRouter.patch("/:postId", validation(PV.likePostSchema), authontication, PS.likeDislikePosts);
-postRouter.put("/update/:postId", validation(PV.updatePostSchema), authontication, PS.updatePost);
+postRouter.patch("/:postId", authontication, validation(PV.likePostSchema), PS.likeDislikePosts);
+postRouter.put("/update/:postId", authontication, validation(PV.updatePostSchema), PS.updatePost);
 
 
 export default postRouter

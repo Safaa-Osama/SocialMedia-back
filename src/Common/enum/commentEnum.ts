@@ -1,6 +1,6 @@
 
 
-export enum OnModel {
+export enum OnModelEnum {
     post = "post",
     commwnt = "comment"
 }
