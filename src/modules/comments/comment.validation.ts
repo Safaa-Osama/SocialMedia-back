@@ -22,8 +22,7 @@ export const createCommentSchema = {
         }
     }),
     params: z.strictObject({
-        postid: generalFields.id,
-        commentId: generalFields.id.optional()
+        postId: generalFields.id,
     })
 
 }

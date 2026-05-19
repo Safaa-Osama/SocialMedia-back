@@ -28,8 +28,8 @@ class CommentService {
 
 
     createComment = async (req: Request, res: Response, next: NextFunction) => {
-        const { content, attachments, tags }: CreateCommentDto = req.body
-        const { postId, commentId } = req.params
+        const { content, attachments, tags=[] }: CreateCommentDto = req.body
+        const { postId } = req.params as { postId: string }
 
         const post = await this._postRepo.findOne({
             filter: {
@@ -42,6 +42,7 @@ class CommentService {
             throw new AppError("post not exist")
         }
 
+        let mentions: Types.ObjectId[] = []
         if (tags?.length) {
             const taggedUser = await this._userRepo.find({
                 filter: { _id: { $in: tags } }
@@ -52,8 +53,7 @@ class CommentService {
             }
         }
 
-        let mentions: Types.ObjectId[] = []
-        for (const tag of tags!) {
+        for (const tag of tags) {
             const tokens = await this._redisService.getFCMs(Types.ObjectId.createFromHexString(tag))
             if (tokens) {
                 await this._notificationService.sendNotifications({
@@ -75,8 +75,8 @@ class CommentService {
         }
 
         const comment = await this._commentRepo.create({
-            folderId,
-            postId: post._id,
+            folderId, 
+            refId: post._id,
             content,
             tags: mentions,
             attachments: urls,
@@ -91,7 +91,7 @@ class CommentService {
         successResponse({ res, message: "comment created", data: comment })
     }
 
-    getPosts = async (req: Request, res: Response, next: NextFunction){
+    getPosts = async (req: Request, res: Response, next: NextFunction)=>{
         const posts = await this._postRepo.find({
             filter: { ...postAvailability(req) }
         })
@@ -115,7 +115,6 @@ class CommentService {
             options: { populate: [{ path: "comments" }] }
         })
 
-        doc.push
         successResponse({ res, data: posts });
     };
 }

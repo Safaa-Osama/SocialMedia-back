@@ -25,7 +25,7 @@ const commentSchema = new Schema<IComment>({
     tags: [{ type: Schema.Types.ObjectId, ref: "user" }],
 
     createdBy: { type: Schema.Types.ObjectId, required: true, ref: "user" },
-    refId: { type: Schema.Types.ObjectId, required: true, refPath: "onModel" },
+    refId: { type: Schema.Types.ObjectId, required: true, refPath: "OnModel" },
 
     OnModel: { type: String, enum: OnModelEnum,default:OnModelEnum.post, required: true }
 }, {
@@ -43,4 +43,4 @@ commentSchema.virtual("replies", {
 })
 
 export const commentModel =
-    mongoose.models.post || mongoose.model<IComment>("comment", commentSchema);
+    mongoose.models.comment || mongoose.model<IComment>("comment", commentSchema);

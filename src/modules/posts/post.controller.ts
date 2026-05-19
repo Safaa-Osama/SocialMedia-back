@@ -18,8 +18,8 @@ postRouter.get("/", (req, res) => {
 });
 postRouter.get("/allPosts", PS.getAllPosts);
 
-postRouter.post("/create", multer_cloud().array("attachments", 3), validation(PV.createPostSchema),
-    authontication, PS.createPost);
+postRouter.post("/create", multer_cloud().array("attachments", 3), authontication,
+    validation(PV.createPostSchema), PS.createPost);
 
 postRouter.patch("/:postId", authontication, validation(PV.likePostSchema), PS.likeDislikePosts);
 postRouter.put("/update/:postId", authontication, validation(PV.updatePostSchema), PS.updatePost);

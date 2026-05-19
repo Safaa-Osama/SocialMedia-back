@@ -11,7 +11,7 @@ export interface IPost {
 
     tags?: Types.ObjectId[];
     likes?: Types.ObjectId[];
-    folderId: string
+    folderId: string;
 }
 
 const postSchema = new Schema<IPost>({

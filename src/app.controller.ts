@@ -43,28 +43,6 @@ export const bootstrap = async () => {
     })
 
 
-    const schema = new GraphQLSchema({
-        query: new GraphQLObjectType({
-            name: 'RootQueryType',
-            fields: {
-                hello: {
-                    type: GraphQLString,
-                    resolve() {
-                        return 'hello world';
-                    },
-                },
-                hi: {
-                    type: GraphQLString,
-                    resolve() {
-                        return "say hi"
-                    }
-                }
-            },
-        }),
-    });
-
-
-
     app.post("/send-notification", async (req: Request, res: Response, next: NextFunction) => {
 
         console.log({ token: req.body.token })
