@@ -7,8 +7,9 @@ export interface IComment {
 
     createdBy: Types.ObjectId;
     refId: Types.ObjectId;
-    OnModel: string;
     tags?: Types.ObjectId[];
+
+    onModel: string;
     folderId:string;
 }
 
@@ -25,9 +26,9 @@ const commentSchema = new Schema<IComment>({
     tags: [{ type: Schema.Types.ObjectId, ref: "user" }],
 
     createdBy: { type: Schema.Types.ObjectId, required: true, ref: "user" },
-    refId: { type: Schema.Types.ObjectId, required: true, refPath: "OnModel" },
+    refId: { type: Schema.Types.ObjectId, required: true, refPath: "onModel" },
 
-    OnModel: { type: String, enum: OnModelEnum,default:OnModelEnum.post, required: true }
+    onModel: { type: String, enum: OnModelEnum,default:OnModelEnum.post, required: true }
 }, {
     timestamps: true,
     strictQuery: true,

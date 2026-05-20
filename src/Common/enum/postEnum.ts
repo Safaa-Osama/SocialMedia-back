@@ -1,13 +1,13 @@
 
 
-export enum availabilityEnum {
+export enum AvailabilityEnum {
     public = "public",
     friends = "friends",
     onlyMe = "onlyMe"
 
 }
 
-export enum allowCommentEnum {
+export enum AllowCommentEnum {
     allowed = "allowed",
     notAllowed = "notAllowed"
 }

@@ -1,4 +1,4 @@
-import { multerEnum, StoreEnum } from './../enum/multerEnum';
+import { MulterEnum, StoreEnum } from './../enum/multerEnum';
 import { Request } from "express";
 import multer, { FileFilterCallback } from "multer";
 import { tmpdir } from 'os';
@@ -7,7 +7,7 @@ import { AppError } from './globalError';
 
 export const multer_cloud = ({
     storeType = StoreEnum.memory,
-    customType = multerEnum.image,
+    customType = MulterEnum.image,
     maxFileSize = 5 * 1024 * 1024
 }: {
     storeType?: StoreEnum,

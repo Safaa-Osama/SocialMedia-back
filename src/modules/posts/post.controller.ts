@@ -11,7 +11,7 @@ import commentRouter from "../comments/comment.controller";
 
 const postRouter = Router()
 
-postRouter.use("/:postId/comments", commentRouter)
+postRouter.use("/:postId/comments{/:commentId/replies}", commentRouter)
 
 postRouter.get("/", (req, res) => {
     successResponse({ res, message: "Post Page" })

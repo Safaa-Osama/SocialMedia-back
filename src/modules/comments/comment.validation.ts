@@ -1,3 +1,4 @@
+import { OnModelEnum } from '../../Common/enum/commentEnum';
 import { generalFields } from './../../Common/utilis/generalFields';
 import * as z from "zod"
 
@@ -8,7 +9,7 @@ export const createCommentSchema = {
         content: z.string().min(3).max(1000).optional(),
         attachments: z.array(generalFields.file).optional(),
         tags: z.array(generalFields.id).optional(),
-
+        onModel:z.enum(OnModelEnum)
     }).superRefine((args, ctx) => {
         if (args.tags?.length) {
             const uniqueTags = [...new Set(args.tags)]
@@ -23,6 +24,8 @@ export const createCommentSchema = {
     }),
     params: z.strictObject({
         postId: generalFields.id,
+        commentId: generalFields.id.optional(),
+
     })
 
 }

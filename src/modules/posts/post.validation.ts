@@ -1,6 +1,6 @@
 import * as z from "zod"
 import { generalFields } from "../../Common/utilis/generalFields"
-import { allowCommentEnum, availabilityEnum } from "../../Common/enum/postEnum"
+import { AllowCommentEnum, AvailabilityEnum } from "../../Common/enum/postEnum"
 
 
 export const createPostSchema = {
@@ -9,8 +9,8 @@ export const createPostSchema = {
         content: z.string().min(3).max(1000).optional(),
         attachments: z.array(z.any()).optional(),
 
-        allowComment: z.enum(allowCommentEnum).default(allowCommentEnum.allowed).optional(),
-        availability: z.enum(availabilityEnum).default(availabilityEnum.public).optional(),
+        allowComment: z.enum(AllowCommentEnum).default(AllowCommentEnum.allowed).optional(),
+        availability: z.enum(AvailabilityEnum).default(AvailabilityEnum.public).optional(),
 
         tags: z.array(generalFields.id).optional()
 
@@ -50,8 +50,8 @@ export const updatePostSchema = {
         attachments: z.array(generalFields.file).optional(),
         removeFiles: z.array(z.string()).optional(),
 
-        allowComment: z.enum(allowCommentEnum).default(allowCommentEnum.allowed).optional(),
-        availability: z.enum(availabilityEnum).default(availabilityEnum.public).optional(),
+        allowComment: z.enum(AllowCommentEnum).default(AllowCommentEnum.allowed).optional(),
+        availability: z.enum(AvailabilityEnum).default(AvailabilityEnum.public).optional(),
 
         tags: z.array(generalFields.id).optional(),
         removeTags: z.array(generalFields.id).optional()
@@ -66,7 +66,7 @@ export const updatePostSchema = {
                     message: "Duplicated Id"
                 })
             }
-         }
+        }
     }),
 
     params: likePostSchema.params

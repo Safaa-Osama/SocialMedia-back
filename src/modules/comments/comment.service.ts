@@ -1,4 +1,4 @@
-import { IPost } from './../../DB/models/post.model';
+import { OnModelEnum } from './../../Common/enum/commentEnum';
 import { NextFunction, Request, Response } from "express";
 import { successResponse } from "../../Common/utilis/response";
 import PostRepo from "../../DB/reposetories/post-repo";
@@ -11,10 +11,12 @@ import { randomUUID } from "node:crypto";
 import { StoreEnum } from "../../Common/enum/multerEnum";
 import { postAvailability } from "../../Common/utilis/availability";
 import { CreateCommentDto } from "./comment.dto";
-import { HydratedDocument, Types } from "mongoose";
+import { Types } from "mongoose";
 import commentRepo from "../../DB/reposetories/comment-repo";
 import { IComment } from "../../DB/models/comment.model";
-import { allowCommentEnum } from '../../Common/enum/postEnum';
+import { AllowCommentEnum } from '../../Common/enum/postEnum';
+import { IPost } from '../../DB/models/post.model';
+import { HydratedDocument } from 'mongoose';
 
 
 
@@ -27,19 +29,43 @@ class CommentService {
     private readonly _notificationService = notificationService
 
 
-    createComment = async (req: Request, res: Response, next: NextFunction) => {
-        const { content, attachments, tags=[] }: CreateCommentDto = req.body
-        const { postId } = req.params as { postId: string }
+    createCommentReply = async (req: Request, res: Response, next: NextFunction) => {
+        const { content, attachments, onModel, tags = [] }: CreateCommentDto = req.body
+        const { postId, commentId } = req.params
+        let doc: (HydratedDocument<IPost> | HydratedDocument<IComment>) | null = null
 
-        const post = await this._postRepo.findOne({
-            filter: {
-                _id: postId,
-                ...postAvailability(req),
-                allowComment: allowCommentEnum.allowed
+        if (onModel == OnModelEnum.post && !commentId) {
+
+            doc = await this._postRepo.findOne({
+                filter: {
+                    _id: postId,
+                    ...(postAvailability(req)),
+                    allowComment: AllowCommentEnum.allowed
+                }
+            })
+            if (!doc) {
+                throw new AppError("post not exist or not authorized")
             }
-        })
-        if (!post) {
-            throw new AppError("post not exist")
+        }
+        else if (onModel == OnModelEnum.comment && commentId) {
+            if (!postId || !commentId) {
+                throw new AppError("postId and commentId are required")
+            }
+            let comment = await this._commentRepo.findOne({
+                filter: {
+                    _id: commentId,
+                    refId: postId
+                },
+                options: {
+                    populate: [{
+                        path: "refId", match: { ...postAvailability, allowComment: AllowCommentEnum.allowed }
+                    }]
+                }
+            })
+            if (!comment?.refId) {
+                throw new AppError("comment not exist or not authorized")
+            }
+            doc = comment
         }
 
         let mentions: Types.ObjectId[] = []
@@ -69,37 +95,37 @@ class CommentService {
         if (req.files) {
             urls = await this._s3service.uploadFiles({
                 files: req.files as Express.Multer.File[],
-                path: `users/${req?.user?._id}/posts/${post.folderId}/comments/${folderId}`,
+                path: `users/${req?.user?._id}/posts/${doc?.folderId}/comments/${folderId}`,
                 store_type: StoreEnum.memory
             })
         }
 
         const comment = await this._commentRepo.create({
-            folderId, 
-            refId: post._id,
-            content,
+            folderId,
+            refId: doc?._id!,
+            content: content || "",
             tags: mentions,
             attachments: urls,
             createdBy: req?.user?._id,
-
-        } as Partial<IComment>)
+            onModel
+        })
 
         if (!comment) {
             await this._s3service.deleteManyFiles(urls)
             throw new AppError("fail to create comment")
         }
-        successResponse({ res, message: "comment created", data: comment })
+        successResponse({ res, data: doc })
     }
 
-    getPosts = async (req: Request, res: Response, next: NextFunction)=>{
+    getPosts = async (req: Request, res: Response, next: NextFunction) => {
         const posts = await this._postRepo.find({
-            filter: { ...postAvailability(req) }
+            filter: { ...(postAvailability(req)) }
         })
 
         let doc = []
         for (const post of posts) {
             const comments = await this._commentRepo.find({
-                filter: { postId: post._id }
+                filter: { refId: post._id }
             })
             doc.push({ ...post.toObject(), comments })
         }
@@ -111,12 +137,31 @@ class CommentService {
     getPostComment = async (req: Request, res: Response, next: NextFunction) => {
 
         const posts = await this._postRepo.find({
-            filter: { ...postAvailability(req) },
+            filter: { ...(postAvailability(req)) },
             options: { populate: [{ path: "comments" }] }
         })
 
         successResponse({ res, data: posts });
     };
+
+
+    getPostCommentReply = async (req: Request, res: Response, next: NextFunction) => {
+
+        const posts = await this._postRepo.find({
+            filter: { ...postAvailability(req) },
+            options: {
+                populate: [{
+                    path: "comments", match: { commentId: { $exists: false } },
+                    populate: [{
+                        path: "replies"
+                    }]
+                }]
+            }
+        })
+
+        successResponse({ res, data: posts });
+    };
+
 }
 
 export default new CommentService()

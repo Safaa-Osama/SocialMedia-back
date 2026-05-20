@@ -2,5 +2,5 @@
 
 export enum OnModelEnum {
     post = "post",
-    commwnt = "comment"
+    comment = "comment"
 }

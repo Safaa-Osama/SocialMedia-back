@@ -1,5 +1,5 @@
 import mongoose, { Schema, Types } from "mongoose";
-import { allowCommentEnum, availabilityEnum } from "../../Common/enum/postEnum";
+import { AllowCommentEnum, AvailabilityEnum } from "../../Common/enum/postEnum";
 
 export interface IPost {
     content?: string;
@@ -27,8 +27,8 @@ const postSchema = new Schema<IPost>({
 
     createdBy: { type: Schema.Types.ObjectId, required: true, ref: "user" },
 
-    availability: { type: String, enum: availabilityEnum, default: availabilityEnum.public },
-    allowComment: { type: String, enum: allowCommentEnum, default: allowCommentEnum.allowed },
+    availability: { type: String, enum: AvailabilityEnum, default: AvailabilityEnum.public },
+    allowComment: { type: String, enum: AllowCommentEnum, default: AllowCommentEnum.allowed },
 
     tags: [{ type: Schema.Types.ObjectId, ref: "user" }],
     likes: [{ type: Schema.Types.ObjectId, ref: "user" }]
