@@ -242,21 +242,19 @@ class PostService {
             await this._s3service.deleteManyFiles(post.attachments)
         }
 
-        const comments: HydratedDocument<IComment>[] = this._commentRepo.find({
+        const comments: HydratedDocument<IComment>[] = await this._commentRepo.find({
             filter: { postId: post._id }
         })
 
-      
-
         if (comments?.length) {
-              const commentIds = comments.map(comment => comment._id)
-            const replies = this._commentRepo.find({
+            const commentIds = comments.map(comment => comment._id)
+            const replies: HydratedDocument<IComment>[] = await this._commentRepo.find({
                 filter: { commentId: { $in: commentIds } }
             })
 
             if (replies?.length) {
                 await this._commentRepo.deleteMany({
-                    filter: { commentId: { $in: commentIds }  }
+                    filter: { commentId: { $in: commentIds } }
                 })
             }
 

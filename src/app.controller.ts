@@ -15,6 +15,7 @@ import { successResponse } from "./Common/utilis/response";
 import redisService from "./Common/services/redis.service";
 import notificationService from "./Common/services/notification.service";
 import graphql, { GraphQLObjectType, GraphQLSchema, GraphQLString } from "graphql"
+import { createHandler } from 'graphql-http/lib/use/express';
 
 
 const app: express.Application = express()
@@ -55,6 +56,29 @@ export const bootstrap = async () => {
         })
         successResponse({ res, message: "Notifications from firebase ...." })
     })
+
+
+    const schema = new GraphQLSchema({
+        query: new GraphQLObjectType({
+            name: "QuerySchema",
+            fields: {
+                helloWorld: {
+                    type: GraphQLString,
+                    resolve: () => { return "Hello World from GraphQL" }
+                },
+                userName: {
+                    type: GraphQLString,
+                    resolve: () => { return "Ahmed" }
+                },
+                phoneNumber: {
+                    type: GraphQLString,
+                    resolve: () => { return "123456789" }
+                }
+            }
+        })
+    })
+
+    app.use("/graphql", createHandler({ schema }))
 
     app.use("/auth", authRouter);
     app.use("/users", userRouter);

@@ -5,6 +5,8 @@ import { pipeline } from "stream/promises";
 import UserRepo from "../../DB/reposetories/user-repo";
 import { AppError } from "../../Common/middleware/globalError";
 import RedisService from '../../Common/services/redis.service';
+import { GraphQLID, GraphQLObjectType, GraphQLSchema, GraphQLString } from "graphql";
+import { createHandler } from "graphql-http";
 
 
 
@@ -14,12 +16,44 @@ class UserService {
     private readonly _redisService = RedisService
 
 
-
-
-
     getProfile = async (req: Request, res: Response, next: NextFunction) => {
         successResponse({ res, data: { user: req.user } })
     }
+
+    getUserData = async (req: Request, res: Response, next: NextFunction) => {
+        const schema = new GraphQLSchema({
+            query: new GraphQLObjectType({
+                name: "QuerySchema",
+                fields: {
+                    userData: {
+                        type: new GraphQLObjectType({
+                            name: "User",
+                            fields: {
+                                _id: { type: GraphQLID },
+                                email: { type: GraphQLString },
+                                name: { type: GraphQLString },
+                                gender: { type: GraphQLString },
+                                role: { type: GraphQLString },
+                                provider: { type: GraphQLString },
+
+                            }
+                        }),
+                        resolve: async () => {
+                            const user = await this._userRepo.findById(req.user._id)
+                            return user;
+                        }
+                        
+                    }
+                }
+            })
+        })
+
+        const handler = createHandler({ schema })
+        successResponse({ res, data: { handler } })
+    }
+
+
+
 
     uploadImage = async (req: Request, res: Response, next: NextFunction) => {
 
