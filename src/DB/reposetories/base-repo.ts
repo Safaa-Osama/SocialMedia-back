@@ -1,4 +1,4 @@
-import { PopulateOptions, UpdateQuery } from 'mongoose';
+import { DeleteResult, PopulateOptions, UpdateQuery } from 'mongoose';
 import { HydratedDocument, ProjectionType, QueryFilter, QueryOptions, Types } from 'mongoose';
 import { Model } from 'mongoose';
 
@@ -59,6 +59,14 @@ abstract class BaseRepo<TDocument> {
             options?: QueryOptions<TDocument>
         }): Promise<HydratedDocument<TDocument> | null> {
         return this.model.findOneAndDelete(filter, options)
+    }
+
+    async deleteMany({ filter, options }:
+        {
+            filter?: QueryFilter<TDocument>,
+            options?: QueryFilter<TDocument> | null
+        }):Promise<DeleteResult> {
+        return this.model.deleteMany(filter, options)
     }
 
     async paginate({ page, limit, sort, populate, search }: {

@@ -9,14 +9,17 @@ import notificationService from "../../Common/services/notification.service";
 import { AppError } from "../../Common/middleware/globalError";
 import userRepo from "../../DB/reposetories/user-repo";
 import { randomUUID } from "node:crypto";
-import { Types } from "mongoose";
+import { HydratedDocument, Types } from "mongoose";
 import { StoreEnum } from "../../Common/enum/multerEnum";
 import { IPost } from "../../DB/models/post.model";
+import CommentRepo from '../../DB/reposetories/comment-repo';
+import { IComment } from '../../DB/models/comment.model';
 
 
 class PostService {
     private readonly _s3service = s3Service
     private readonly _postRepo = PostRepo
+    private readonly _commentRepo = CommentRepo
     private readonly _userRepo = userRepo
     private readonly _redisService = RedisService
     private readonly _notificationService = notificationService
@@ -220,6 +223,53 @@ class PostService {
         }
         await post.save()
         successResponse({ res, data: post })
+    }
+
+    deletePost = async (req: Request, res: Response, next: NextFunction) => {
+        const { postId } = req.params
+
+        const post = await this._postRepo.findOne({
+            filter: {
+                createdBy: req.user._id,
+                _id: postId
+            }
+        })
+        if (!post) {
+            throw new AppError("post not found")
+        }
+
+        if (post.attachments?.length) {
+            await this._s3service.deleteManyFiles(post.attachments)
+        }
+
+        const comments: HydratedDocument<IComment>[] = this._commentRepo.find({
+            filter: { postId: post._id }
+        })
+
+      
+
+        if (comments?.length) {
+              const commentIds = comments.map(comment => comment._id)
+            const replies = this._commentRepo.find({
+                filter: { commentId: { $in: commentIds } }
+            })
+
+            if (replies?.length) {
+                await this._commentRepo.deleteMany({
+                    filter: { commentId: { $in: commentIds }  }
+                })
+            }
+
+            await this._commentRepo.deleteMany({
+                filter: { postId: post._id }
+            })
+        }
+
+        await this._postRepo.findOneAndDelete({
+            filter: { createdBy: req.user._id, _id: postId }
+        })
+
+        successResponse({ res, message: "post deleted" })
     }
 
 }

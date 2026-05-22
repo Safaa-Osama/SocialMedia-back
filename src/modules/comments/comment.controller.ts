@@ -17,6 +17,7 @@ commentRouter.get("/", authontication, CS.getPostComment)
 commentRouter.get("/allposts", authontication, CS.getPostComment)
 
 
+
 commentRouter.post("/create/:postId", multer_cloud().array("attachments", 3), authontication,
     validation(CV.createCommentSchema), CS.createCommentReply)
 
