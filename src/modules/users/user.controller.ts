@@ -1,7 +1,7 @@
 import { Router } from "express";
 import US from "./user.service"
 import { successResponse } from "../../Common/utilis/response";
-import { authontication } from "../../Common/middleware/authontication";
+import { authentication } from "../../Common/middleware/authentication";
 import { multer_cloud } from "../../Common/middleware/multer";
 import { StoreEnum } from "../../Common/enum/multerEnum";
 
@@ -12,25 +12,22 @@ const userRouter = Router()
 userRouter.get("/",(req,res)=>{
 successResponse({res,message:"User Page"})});
 
-userRouter.get("/profile", authontication, US.getProfile);
+userRouter.get("/profile", authentication, US.getProfile);
 
-userRouter.get("/upload/preSigned/*path", authontication,US.getPreSignedUrl);
-userRouter.get("/upload/*path", authontication,US.getFile);
-userRouter.get("/upload", authontication,US.getManyFiles);
-
-
-userRouter.post("/upload",multer_cloud().single("attachment"), authontication, US.uploadImage);
-userRouter.post("/upload-small",multer_cloud().single("attachment"), authontication, US.uploadSmallFile);
-userRouter.post("/upload-large",multer_cloud({storeType:StoreEnum.disk}).single("attachment"), authontication, US.uploadLargeFile);
-userRouter.post("/upload-files",multer_cloud().array("attachments"), authontication, US.uploadFiles);
-userRouter.post("/upload/preSigned",authontication, US.createPreSignedUrl);
-
-userRouter.delete("/del",authontication,US.deleteFile)
-userRouter.delete("/del-many",authontication,US.deleteManyFiles)
-userRouter.delete("/del-user",authontication,US.deleteUser)
+userRouter.get("/upload/preSigned/*path", authentication,US.getPreSignedUrl);
+userRouter.get("/upload/*path", authentication,US.getFile);
+userRouter.get("/upload", authentication ,US.getManyFiles);
 
 
+userRouter.post("/upload",multer_cloud().single("attachment"), authentication, US.uploadImage);
+userRouter.post("/upload-small",multer_cloud().single("attachment"), authentication, US.uploadSmallFile);
+userRouter.post("/upload-large",multer_cloud({storeType:StoreEnum.disk}).single("attachment"), authentication, US.uploadLargeFile);
+userRouter.post("/upload-files",multer_cloud().array("attachments"), authentication, US.uploadFiles);
+userRouter.post("/upload/preSigned",authentication, US.createPreSignedUrl);
 
+userRouter.delete("/del",authentication,US.deleteFile)
+userRouter.delete("/del-many",authentication,US.deleteManyFiles)
+userRouter.delete("/del-user",authentication,US.deleteUser)
 
 
 export default userRouter 

@@ -172,7 +172,7 @@ class UserService {
     }
 
     //=======GRAPHQL========
-    getuserDataResolver = (userId:Types.ObjectId) => {
+    getuserDataResolver = (userId: Types.ObjectId) => {
         return this._userRepo.findOne({
             filter: { _id: userId },
         })
@@ -200,7 +200,7 @@ class UserService {
 
     deleteUserDataResolver = async (parent: any, args: any) => {
         return await this._userRepo.findOneAndDelete({
-            _id: args.id
+            filter: { _id: parent._id },
         })
     }
 

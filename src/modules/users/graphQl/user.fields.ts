@@ -11,8 +11,8 @@ class UserFields {
             getUserData: {
                 type: userType,
                 args: getuserDataArgs,
-                resolve: (parent: any, args: any) => {
-                    return userService.getuserDataResolver(parent, args)
+                resolve: (parent: any, args: any, context: any) => {
+                    return userService.getuserDataResolver( context.req.raw.user._id)
                 }
 
             },
@@ -20,7 +20,7 @@ class UserFields {
                 type: new GraphQLList(userType),
                 resolve: (parent: any, args: any, context: any) => {
                 
-                    return userService.getAlluserResolver(context.req.raw.user._id)
+                    return userService.getAlluserResolver(null,context.req.raw.user._id)
 
             }}
         }
@@ -31,7 +31,7 @@ class UserFields {
             updateProfile: {
                 type: userType,
                 args: updateProfileArgs,
-                resolve: (parent: any, args: any) => {
+                resolve: (parent: any, args: any, context: any) => {
                     return userService.updateProfileResolver(parent, args)
                 }
 
@@ -39,7 +39,7 @@ class UserFields {
             deleteUserData: {
                 type: userType,
                 args: deleteUserDataArgs,
-                resolve: (parent: any, args: any) => {
+                resolve: (parent: any, args: any, context: any) => {
                     return userService.deleteUserDataResolver(parent, args)
                 }
             }
