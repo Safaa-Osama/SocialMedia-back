@@ -13,7 +13,6 @@ userRouter.get("/",(req,res)=>{
 successResponse({res,message:"User Page"})});
 
 userRouter.get("/profile", authontication, US.getProfile);
-userRouter.get("/userData", authontication, US.getUserData);
 
 userRouter.get("/upload/preSigned/*path", authontication,US.getPreSignedUrl);
 userRouter.get("/upload/*path", authontication,US.getFile);

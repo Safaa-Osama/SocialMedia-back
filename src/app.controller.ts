@@ -1,4 +1,3 @@
-import { resolve } from 'node:path';
 import express from "express";
 import type { NextFunction, Request, Response } from "express"
 import cors from "cors";
@@ -14,8 +13,9 @@ import { dbConnection } from "./DB/mongoDB/db.connect";
 import { successResponse } from "./Common/utilis/response";
 import redisService from "./Common/services/redis.service";
 import notificationService from "./Common/services/notification.service";
-import graphql, { GraphQLObjectType, GraphQLSchema, GraphQLString } from "graphql"
 import { createHandler } from 'graphql-http/lib/use/express';
+import { Server } from 'socket.io';
+import gqlschema from './modules/gql/schema.gql';
 
 
 const app: express.Application = express()
@@ -58,41 +58,40 @@ export const bootstrap = async () => {
     })
 
 
-    const schema = new GraphQLSchema({
-        query: new GraphQLObjectType({
-            name: "QuerySchema",
-            fields: {
-                helloWorld: {
-                    type: GraphQLString,
-                    resolve: () => { return "Hello World from GraphQL" }
-                },
-                userName: {
-                    type: GraphQLString,
-                    resolve: () => { return "Ahmed" }
-                },
-                phoneNumber: {
-                    type: GraphQLString,
-                    resolve: () => { return "123456789" }
-                }
-            }
-        })
+    app.use("/graphql", createHandler({ schema: gqlschema, context: (req) => ({ req }) } ))
+
+app.use("/auth", authRouter);
+app.use("/users", userRouter);
+app.use("/posts", postRouter);
+app.use("/comments", commentRouter);
+
+
+app.use("{/*demo}", (req: Request, res: Response, next: NextFunction) => {
+    throw new AppError(`URL ${req.originalUrl} WITH METHOD ${req.method} IS NOT FOUND`, 404)
+})
+
+app.use(globalErrorHandler)
+
+const httpServer = app.listen(port, () => {
+    console.log(`your app is running at ${PORT}`)
+})
+const io = new Server(httpServer, {
+    cors: { origin: "*" }
+})
+
+io.on("connection", (socket) => {
+    console.log(socket.id)
+
+
+    socket.on("saiHello", (data, cb) => {
+
+        console.log(data)
+
+        socket.emit("saiHelloBE", "Hello from BackEnd")
+
     })
 
-    app.use("/graphql", createHandler({ schema }))
-
-    app.use("/auth", authRouter);
-    app.use("/users", userRouter);
-    app.use("/posts", postRouter);
-    app.use("/comments", commentRouter);
+})
 
 
-    app.use("{/*demo}", (req: Request, res: Response, next: NextFunction) => {
-        throw new AppError(`URL ${req.originalUrl} WITH METHOD ${req.method} IS NOT FOUND`, 404)
-    })
-
-    app.use(globalErrorHandler)
-
-    app.listen(port, () => {
-        console.log(`your app is running at ${PORT}`)
-    })
 }
