@@ -85,24 +85,27 @@ export const bootstrap = async () => {
         cors: { origin: "*" }
     })
 
+
+
+    io.use(async (socket, next) => {
+        try {
+            const authorization = socket.handshake.auth.authorization as string;
+            const { user } = await authenticateToken(authorization);
+            socket.data.user = user;
+            next();
+        } catch (error: any) {
+            next(error);
+        }
+    })
+
     io.on("connection", (socket: any) => {
-        io.use(async (socket, next) => {
-            try {
-                const authorization = socket.handshake.auth.authorization as string;
-                const { user } = await authenticateToken(authorization);
-                socket.data.user = user;
-                next();
-            } catch (error: any) {
-                next(error);
-            }
 
-            socket.on("saiHello", (data, cb) => {
-                socket.emit("saiHelloBE", "Hello from BackEnd")
-            })
-
-
+        socket.on("saiHello", (data: any) => {
+            console.log(data)
+            socket.emit("saiHelloBE", "Hello from BackEnd")
         })
+    })
 
 
-    })      
+
 }
