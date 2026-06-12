@@ -16,6 +16,8 @@ import notificationService from "./Common/services/notification.service";
 import { createHandler } from 'graphql-http/lib/use/express';
 import { Server } from 'socket.io';
 import gqlschema from './modules/gql/schema.gql';
+import chatRouter from "./modules/chat/chat.controller";
+import { authenticateToken } from "./Common/middleware/authentication";
 
 
 const app: express.Application = express()
@@ -58,40 +60,49 @@ export const bootstrap = async () => {
     })
 
 
-    app.use("/graphql", createHandler({ schema: gqlschema, context: (req) => ({ req }) } ))
+    app.use("/graphql", createHandler({ schema: gqlschema, context: (req) => ({ req }) }))
 
-app.use("/auth", authRouter);
-app.use("/users", userRouter);
-app.use("/posts", postRouter);
-app.use("/comments", commentRouter);
-
-
-app.use("{/*demo}", (req: Request, res: Response, next: NextFunction) => {
-    throw new AppError(`URL ${req.originalUrl} WITH METHOD ${req.method} IS NOT FOUND`, 404)
-})
-
-app.use(globalErrorHandler)
-
-const httpServer = app.listen(port, () => {
-    console.log(`your app is running at ${PORT}`)
-})
-const io = new Server(httpServer, {
-    cors: { origin: "*" }
-})
-
-io.on("connection", (socket) => {
-    console.log(socket.id)
+    app.use("/auth", authRouter);
+    app.use("/users", userRouter);
+    app.use("/posts", postRouter);
+    app.use("/comments", commentRouter);
+    app.use("/chat", chatRouter);
 
 
-    socket.on("saiHello", (data, cb) => {
 
-        console.log(data)
-
-        socket.emit("saiHelloBE", "Hello from BackEnd")
-
+    app.use("{/*demo}", (req: Request, res: Response, next: NextFunction) => {
+        throw new AppError(`URL ${req.originalUrl} WITH METHOD ${req.method} IS NOT FOUND`, 404)
     })
 
-})
+    app.use(globalErrorHandler)
+
+    const httpServer = app.listen(port, () => {
+        console.log(`your app is running at ${PORT}`)
+    })
 
 
+    const io = new Server(httpServer, {
+        cors: { origin: "*" }
+    })
+
+    io.on("connection", (socket: any) => {
+        io.use(async (socket, next) => {
+            try {
+                const authorization = socket.handshake.auth.authorization as string;
+                const { user } = await authenticateToken(authorization);
+                socket.data.user = user;
+                next();
+            } catch (error: any) {
+                next(error);
+            }
+
+            socket.on("saiHello", (data, cb) => {
+                socket.emit("saiHelloBE", "Hello from BackEnd")
+            })
+
+
+        })
+
+
+    })      
 }

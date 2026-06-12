@@ -8,7 +8,7 @@ import redisService from "../services/redis.service";
 
 const _userRepo = UserRepo
 
-const authenticateToken = async (authorization: string) => {
+export const authenticateToken = async (authorization: string) => {
     if (!authorization) {
         throw new AppError("invalid authorization");
     }
