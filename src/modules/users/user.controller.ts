@@ -22,7 +22,7 @@ userRouter.get("/upload/*path", authentication,US.getFile);
 userRouter.get("/upload", authentication ,US.getManyFiles);
 
 
-userRouter.post("/upload",multer_cloud().single("attachment"), authentication, US.uploadImage);
+userRouter.post("/ ",multer_cloud().single("attachment"), authentication, US.uploadImage);
 userRouter.post("/upload-small",multer_cloud().single("attachment"), authentication, US.uploadSmallFile);
 userRouter.post("/upload-large",multer_cloud({storeType:StoreEnum.disk}).single("attachment"), authentication, US.uploadLargeFile);
 userRouter.post("/upload-files",multer_cloud().array("attachments"), authentication, US.uploadFiles);
