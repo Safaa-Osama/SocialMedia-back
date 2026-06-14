@@ -14,10 +14,9 @@ import { successResponse } from "./Common/utilis/response";
 import redisService from "./Common/services/redis.service";
 import notificationService from "./Common/services/notification.service";
 import { createHandler } from 'graphql-http/lib/use/express';
-import { Server } from 'socket.io';
 import gqlschema from './modules/gql/schema.gql';
 import chatRouter from "./modules/chat/chat.controller";
-import { authenticateToken } from "./Common/middleware/authentication";
+import socketGetway from "./modules/realTimeConnection/socket.getway";
 
 
 const app: express.Application = express()
@@ -80,32 +79,6 @@ export const bootstrap = async () => {
         console.log(`your app is running at ${PORT}`)
     })
 
-
-    const io = new Server(httpServer, {
-        cors: { origin: "*" }
-    })
-
-
-
-    io.use(async (socket, next) => {
-        try {
-            const authorization = socket.handshake.auth.authorization as string;
-            const { user } = await authenticateToken(authorization);
-            socket.data.user = user;
-            next();
-        } catch (error: any) {
-            next(error);
-        }
-    })
-
-    io.on("connection", (socket: any) => {
-
-        socket.on("saiHello", (data: any) => {
-            console.log(data)
-            socket.emit("saiHelloBE", "Hello from BackEnd")
-        })
-    })
-
-
+    await socketGetway.initIO(httpServer)
 
 }

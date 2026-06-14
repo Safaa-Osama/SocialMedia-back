@@ -164,23 +164,23 @@ class RedisService {
 
 
 
-     // REALTIME COMMUNICATION
+    // REALTIME CONNECTION
     socketKey = (userId: Types.ObjectId) => {
-        return `user::FCM::${userId}`
+        return `user::socket::${userId}`
     }
 
-    async addSocket({ userId,socketToken }: {
+    async addSocket({ userId, sockitId }: {
         userId: Types.ObjectId,
-        socketToken: string
+        sockitId: string
     }) {
-        return await this.client.sAdd(this.socketKey(userId),socketToken)
+        return await this.client.sAdd(this.socketKey(userId), sockitId)
     }
 
-    async removeSocket({ userId, socketToken }: {
+    async removeSocket({ userId, sockitId }: {
         userId: Types.ObjectId,
-        socketToken: string
+        sockitId: string
     }) {
-        return await this.client.sRem(this.socketKey(userId), socketToken)
+        return await this.client.sRem(this.socketKey(userId), sockitId)
     }
 
     async getSockets(userId: Types.ObjectId) {

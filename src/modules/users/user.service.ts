@@ -5,8 +5,6 @@ import { pipeline } from "stream/promises";
 import UserRepo from "../../DB/reposetories/user-repo";
 import { AppError } from "../../Common/middleware/globalError";
 import RedisService from '../../Common/services/redis.service';
-import gqlschema from "../gql/schema.gql";
-import { createHandler } from "graphql-http";
 import { Types } from "mongoose";
 
 
@@ -18,7 +16,18 @@ class UserService {
 
 
     getProfile = async (req: Request, res: Response, next: NextFunction) => {
-        successResponse({ res, data: { user: req.user } })
+        const user = await this._userRepo.findOne({
+            filter: { _id: req.user._id },
+            options: {
+                populate: [{
+                    path: "friends",
+                    populate: [{
+                        path: "friend"
+                    }]
+                }]
+            }
+        })
+        successResponse({ res, data: { user } })
     }
 
     uploadImage = async (req: Request, res: Response, next: NextFunction) => {
@@ -171,12 +180,12 @@ class UserService {
         successResponse({ res })
     }
 
+    
     //=======GRAPHQL========
     getuserDataResolver = (userId: Types.ObjectId) => {
         return this._userRepo.findOne({
             filter: { _id: userId },
         })
-
     }
 
     getAlluserResolver = async (parent: any, args: any) => {
@@ -187,8 +196,6 @@ class UserService {
         })
     }
 
-
-
     updateProfileResolver = async (parent: any, args: any) => {
         return this._userRepo.findByIdAndUpdate({
             id: parent._id,
@@ -196,15 +203,11 @@ class UserService {
         })
     }
 
-
-
     deleteUserDataResolver = async (parent: any, args: any) => {
         return await this._userRepo.findOneAndDelete({
             filter: { _id: parent._id },
         })
     }
-
-
 
 
 }

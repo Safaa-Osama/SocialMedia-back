@@ -4,6 +4,7 @@ import { successResponse } from "../../Common/utilis/response";
 import { authentication } from "../../Common/middleware/authentication";
 import { multer_cloud } from "../../Common/middleware/multer";
 import { StoreEnum } from "../../Common/enum/multerEnum";
+import chatRouter from "../chat/chat.controller";
 
 
 
@@ -11,6 +12,8 @@ const userRouter = Router()
 
 userRouter.get("/",(req,res)=>{
 successResponse({res,message:"User Page"})});
+
+userRouter.use(":userId/chat", authentication, chatRouter)
 
 userRouter.get("/profile", authentication, US.getProfile);
 

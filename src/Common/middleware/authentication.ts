@@ -54,26 +54,26 @@ export const authenticateToken = async (authorization: string) => {
 };
 
 export const authentication = async (req: Request, res: Response, next: NextFunction) => {
-   
-        const authorization = req.headers.authorization as string;
 
-        const { user, decoded } = await authenticateToken(authorization);
+    const authorization = req.headers.authorization as string;
 
-        const revoked = await redisService.getValue(
-            redisService.revokedKey({
-                userId: user._id,
-                jti: decoded.jti!,
-            })
-        );
+    const { user, decoded } = await authenticateToken(authorization);
 
-        if (revoked) {
-            throw new AppError("Invalid token revoked", 400);
-        }
+    const revoked = await redisService.getValue(
+        redisService.revokedKey({
+            userId: user._id,
+            jti: decoded.jti!,
+        })
+    );
 
-        req.user = user;
-        req.decoded = decoded;
+    if (revoked) {
+        throw new AppError("Invalid token revoked", 400);
+    }
 
-        next()
+    req.user = user;
+    req.decoded = decoded;
+
+    next()
 };
 
 export const gql_authentication = async (authorization: string) => {

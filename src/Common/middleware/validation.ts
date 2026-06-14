@@ -43,7 +43,7 @@ export const validation = (schema: SchemaType) => {
     };
 };
 
-export const realTime_validation = (schema: SchemaType) => {
+export const realTimeValidation = (schema: SchemaType) => {
     return async (req: Request, res: Response, next: NextFunction) => {
 
         const errorsResult: { key: ReqType; path: PropertyKey[]; message: string }[] = [];
